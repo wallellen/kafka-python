@@ -4,10 +4,18 @@ import logging
 import time
 import random
 
-from Queue import Empty
+try:
+    from Queue import Empty
+except ImportError:
+    from queue import Empty
+
 from collections import defaultdict
 from itertools import cycle
-from multiprocessing import Queue, Process
+try:
+    from multiprocessing import Queue, Process
+except ImportError:
+    from multiprocessing.queues import Queue
+    from multiprocessing import Process
 
 from kafka.common import (
     ProduceRequest, TopicAndPartition, UnsupportedCodecError
