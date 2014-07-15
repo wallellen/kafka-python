@@ -15,6 +15,7 @@ from kafka.protocol import (
     create_message, KafkaProtocol
 )
 from kafka.py3 import dict_items
+from kafka import py3
 
 class TestKafkaClient(unittest2.TestCase):
     def test_init_with_list(self):
@@ -243,7 +244,7 @@ class TestKafkaClient(unittest2.TestCase):
 
         requests = [ProduceRequest(
             "topic_noleader", 0,
-            [create_message("a"), create_message("b")])]
+            [create_message(py3.b("a")), create_message(py3.b("b"))])]
 
         with self.assertRaises(LeaderUnavailableError):
             client.send_produce_request(requests)

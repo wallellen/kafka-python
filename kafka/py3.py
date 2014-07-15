@@ -14,6 +14,7 @@ if sys.version > '3':
         return codecs.latin_1_encode(x)[0]
     def s(x):
         return codecs.unicode_escape_decode(x)[0]
+    long = int
 else:
     string_types = basestring
     xrange = xrange

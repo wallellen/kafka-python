@@ -138,6 +138,9 @@ class KafkaConnection(local):
         c._sock = None
         return c
 
+    def __deepcopy__(self, memo):
+        return KafkaConnection(self.host, self.port, self.timeout)
+
     def close(self):
         """
         Close this connection

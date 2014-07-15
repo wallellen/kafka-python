@@ -55,7 +55,7 @@ class KafkaProtocol(object):
                            0,                    # ApiVersion
                            correlation_id,       # CorrelationId
                            len(client_id),       # ClientId size
-                           client_id)            # ClientId
+                           py3.b(client_id))            # ClientId
 
     @classmethod
     def _encode_message_set(cls, messages):
@@ -531,7 +531,7 @@ def create_message(payload, key=None):
     payload: bytes, the payload to send to Kafka
     key: bytes, a key used for partition routing (optional)
     """
-    return Message(0, 0, py3.b(key) if key else None, py3.b(payload))
+    return Message(0, 0, key, payload)
 
 
 def create_gzip_message(payloads, key=None):

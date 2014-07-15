@@ -22,7 +22,7 @@ log = logging.getLogger("kafka")
 
 class KafkaClient(object):
 
-    CLIENT_ID = py3.b("kafka-python")
+    CLIENT_ID = "kafka-python"
     ID_GEN = count()
 
     # NOTE: The timeout given to the client should always be greater than the
@@ -225,7 +225,7 @@ class KafkaClient(object):
         A reinit() has to be done on the copy before it can be used again
         """
         c = copy.deepcopy(self)
-        for k, v in c.conns.items():
+        for k, v in self.conns.items():
             c.conns[k] = v.copy()
         return c
 

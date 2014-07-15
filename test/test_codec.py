@@ -1,5 +1,6 @@
 import struct
 import unittest2
+from kafka import py3
 
 from kafka.codec import (
     has_snappy, gzip_encode, gzip_decode,
@@ -14,7 +15,7 @@ from test.testutil import *
 class TestCodec(unittest2.TestCase):
     def test_gzip(self):
         for i in xrange(1000):
-            s1 = random_string(100)
+            s1 = py3.b(random_string(100))
             s2 = gzip_decode(gzip_encode(s1))
             self.assertEquals(s1, s2)
 

@@ -2,6 +2,7 @@ import os
 import time
 
 from kafka import *  # noqa
+from kafka import py3
 from kafka.common import *  # noqa
 from test.fixtures import ZookeeperFixture, KafkaFixture
 from test.testutil import *
@@ -52,8 +53,8 @@ class TestFailover(KafkaIntegrationTestCase):
 
             # expect failure, reload meta data
             with self.assertRaises(FailedPayloadsError):
-                producer.send_messages(self.topic, 'part 1')
-                producer.send_messages(self.topic, 'part 2')
+                producer.send_messages(self.topic, py3.b('part 1'))
+                producer.send_messages(self.topic, py3.b('part 2'))
             time.sleep(1)
 
             # send to new leader
@@ -99,7 +100,7 @@ class TestFailover(KafkaIntegrationTestCase):
 
     def _send_random_messages(self, producer, topic, n):
         for j in range(n):
-            resp = producer.send_messages(topic, random_string(10))
+            resp = producer.send_messages(topic, py3.b(random_string(10)))
             if len(resp) > 0:
                 self.assertEquals(resp[0].error, 0)
         time.sleep(1)  # give it some time

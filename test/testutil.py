@@ -11,6 +11,7 @@ import uuid
 from kafka.common import OffsetRequest
 from kafka import KafkaClient
 from kafka.py3 import xrange, letters
+from kafka import py3
 
 __all__ = [
     'random_string',
@@ -95,7 +96,7 @@ class KafkaIntegrationTestCase(unittest2.TestCase):
         if s not in self._messages:
             self._messages[s] = '%s-%s-%s' % (s, self.id(), str(uuid.uuid4()))
 
-        return self._messages[s]
+        return py3.b(self._messages[s])
 
 class Timer(object):
     def __enter__(self):

@@ -1,7 +1,7 @@
 try:
     from cStringIO import StringIO
 except ImportError:
-    from io import StringIO
+    from io import BytesIO as StringIO
 
 import gzip
 import struct

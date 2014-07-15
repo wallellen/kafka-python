@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 from kafka import *  # noqa
+from kafka import py3
 from kafka.common import *  # noqa
 from kafka.consumer import MAX_FETCH_BUFFER_SIZE_BYTES
 from test.fixtures import ZookeeperFixture, KafkaFixture
@@ -118,9 +119,9 @@ class TestConsumerIntegration(KafkaIntegrationTestCase):
         self.send_messages(0, range(0, 100))
         self.send_messages(1, range(100, 200))
 
-        consumer = self.consumer(consumer = MultiProcessConsumer)
+        consumer = self.consumer(consumer=MultiProcessConsumer)
 
-        self.assert_message_count([ message for message in consumer ], 200)
+        self.assert_message_count([message for message in consumer], 200)
 
         consumer.stop()
 
@@ -185,7 +186,7 @@ class TestConsumerIntegration(KafkaIntegrationTestCase):
     @kafka_versions("all")
     def test_huge_messages(self):
         huge_message, = self.send_messages(0, [
-            create_message(random_string(MAX_FETCH_BUFFER_SIZE_BYTES + 10)),
+            create_message(py3.b(random_string(MAX_FETCH_BUFFER_SIZE_BYTES + 10))),
         ])
 
         # Create a consumer with the default buffer size
@@ -225,7 +226,7 @@ class TestConsumerIntegration(KafkaIntegrationTestCase):
         )
 
         # Grab the first 195 messages
-        output_msgs1 = [ consumer1.get_message().message.value for _ in xrange(195) ]
+        output_msgs1 = [ consumer1.get_message().message.value for _ in py3.xrange(195) ]
         self.assert_message_count(output_msgs1, 195)
 
         # The total offset across both partitions should be at 180
