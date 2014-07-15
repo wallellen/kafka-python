@@ -29,6 +29,7 @@ from kafka.protocol import (
 from kafka.py3 import dict_items, long
 from kafka import py3
 
+
 class TestProtocol(unittest2.TestCase):
     def test_create_message(self):
         payload = py3.b("test")
