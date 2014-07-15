@@ -8,7 +8,8 @@ from kafka.codec import (
 from kafka.protocol import (
     create_gzip_message, create_message, create_snappy_message, KafkaProtocol
 )
-from testutil import *
+from kafka.py3 import xrange
+from test.testutil import *
 
 class TestCodec(unittest2.TestCase):
     def test_gzip(self):

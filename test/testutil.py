@@ -10,6 +10,7 @@ import uuid
 
 from kafka.common import OffsetRequest
 from kafka import KafkaClient
+from kafka.py3 import xrange, letters
 
 __all__ = [
     'random_string',
@@ -21,7 +22,7 @@ __all__ = [
 ]
 
 def random_string(l):
-    s = "".join(random.choice(string.letters) for i in xrange(l))
+    s = "".join(random.choice(letters) for i in xrange(l))
     return s
 
 def kafka_versions(*versions):
@@ -39,7 +40,7 @@ def kafka_versions(*versions):
         return wrapper
     return kafka_versions
 
-def ensure_topic_creation(client, topic_name, timeout = 30):
+def ensure_topic_creation(client, topic_name, timeout=30):
     start_time = time.time()
 
     client.load_metadata_for_topics(topic_name)

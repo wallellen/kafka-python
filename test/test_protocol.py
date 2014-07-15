@@ -26,6 +26,7 @@ from kafka.protocol import (
     create_message, create_gzip_message, create_snappy_message,
     create_message_set
 )
+from kafka.py3 import dict_items
 
 class TestProtocol(unittest2.TestCase):
     def test_create_message(self):
@@ -457,15 +458,15 @@ class TestProtocol(unittest2.TestCase):
     def _create_encoded_metadata_response(self, broker_data, topic_data,
                                           topic_errors, partition_errors):
         encoded = struct.pack('>ii', 3, len(broker_data))
-        for node_id, broker in broker_data.iteritems():
+        for node_id, broker in dict_items(broker_data):
             encoded += struct.pack('>ih%dsi' % len(broker.host), node_id,
                                    len(broker.host), broker.host, broker.port)
 
         encoded += struct.pack('>i', len(topic_data))
-        for topic, partitions in topic_data.iteritems():
+        for topic, partitions in dict_items(topic_data):
             encoded += struct.pack('>hh%dsi' % len(topic), topic_errors[topic],
                                    len(topic), topic, len(partitions))
-            for partition, metadata in partitions.iteritems():
+            for partition, metadata in dict_items(partitions):
                 encoded += struct.pack('>hiii',
                                        partition_errors[(topic, partition)],
                                        partition, metadata.leader,

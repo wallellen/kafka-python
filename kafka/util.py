@@ -2,6 +2,7 @@ import collections
 import struct
 import sys
 from threading import Thread, Event
+from kafka import py3
 
 from kafka.common import BufferUnderflowError
 
@@ -20,7 +21,7 @@ def write_short_string(s):
         # Python 2.6 issues a deprecation warning instead of a struct error
         raise struct.error(len(s))
     else:
-        return struct.pack('>h%ds' % len(s), len(s), s)
+        return struct.pack('>h%ds' % len(s), len(s), py3.b(s))
 
 
 def read_short_string(data, cur):
@@ -36,7 +37,7 @@ def read_short_string(data, cur):
         raise BufferUnderflowError("Not enough data left")
 
     out = data[cur:cur + strlen]
-    return out, cur + strlen
+    return py3.s(out), cur + strlen
 
 
 def read_int_string(data, cur):

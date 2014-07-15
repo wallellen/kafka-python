@@ -14,13 +14,15 @@ from kafka.common import (TopicAndPartition,
 
 from kafka.conn import collect_hosts, KafkaConnection, DEFAULT_SOCKET_TIMEOUT_SECONDS
 from kafka.protocol import KafkaProtocol
+from kafka import py3
+from kafka.py3 import iter_next
 
 log = logging.getLogger("kafka")
 
 
 class KafkaClient(object):
 
-    CLIENT_ID = "kafka-python"
+    CLIENT_ID = py3.b("kafka-python")
     ID_GEN = count()
 
     # NOTE: The timeout given to the client should always be greater than the
@@ -81,7 +83,7 @@ class KafkaClient(object):
         """
         Generate a new correlation id
         """
-        return KafkaClient.ID_GEN.next()
+        return iter_next(KafkaClient.ID_GEN)
 
     def _send_broker_unaware_request(self, requestId, request):
         """
@@ -89,14 +91,14 @@ class KafkaClient(object):
         brokers. Keep trying until you succeed.
         """
         for (host, port) in self.hosts:
-            try:
-                conn = self._get_conn(host, port)
-                conn.send(requestId, request)
-                response = conn.recv(requestId)
-                return response
-            except Exception as e:
-                log.warning("Could not send request [%r] to server %s:%i, "
-                            "trying next server: %s" % (request, host, port, e))
+            # try:
+            conn = self._get_conn(host, port)
+            conn.send(requestId, request)
+            response = conn.recv(requestId)
+            return response
+            # except Exception as e:
+            #     log.warning("Could not send request [%r] to server %s:%i, "
+            #                 "trying next server: %s" % (request, host, port, e))
 
         raise KafkaUnavailableError("All servers failed to process request")
 

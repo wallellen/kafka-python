@@ -4,8 +4,8 @@ from datetime import datetime
 from kafka import *  # noqa
 from kafka.common import *  # noqa
 from kafka.consumer import MAX_FETCH_BUFFER_SIZE_BYTES
-from fixtures import ZookeeperFixture, KafkaFixture
-from testutil import *
+from test.fixtures import ZookeeperFixture, KafkaFixture
+from test.testutil import *
 
 class TestConsumerIntegration(KafkaIntegrationTestCase):
     @classmethod

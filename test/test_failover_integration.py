@@ -3,8 +3,8 @@ import time
 
 from kafka import *  # noqa
 from kafka.common import *  # noqa
-from fixtures import ZookeeperFixture, KafkaFixture
-from testutil import *
+from test.fixtures import ZookeeperFixture, KafkaFixture
+from test.testutil import *
 
 class TestFailover(KafkaIntegrationTestCase):
     create_client = False
