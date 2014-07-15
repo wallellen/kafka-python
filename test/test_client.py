@@ -14,8 +14,7 @@ from kafka.common import (
 from kafka.protocol import (
     create_message, KafkaProtocol
 )
-from kafka.py3 import dict_items
-from kafka import py3
+from kafka import compat
 
 class TestKafkaClient(unittest2.TestCase):
     def test_init_with_list(self):
@@ -65,7 +64,7 @@ class TestKafkaClient(unittest2.TestCase):
                 with self.assertRaises(KafkaUnavailableError):
                     client._send_broker_unaware_request(1, 'fake request')
 
-                for key, conn in dict_items(mocked_conns):
+                for key, conn in compat.dict_items(mocked_conns):
                     conn.send.assert_called_with(1, 'fake request')
 
     def test_send_broker_unaware_request(self):
@@ -244,7 +243,7 @@ class TestKafkaClient(unittest2.TestCase):
 
         requests = [ProduceRequest(
             "topic_noleader", 0,
-            [create_message(py3.b("a")), create_message(py3.b("b"))])]
+            [create_message(compat.bytes("a")), create_message(compat.bytes("b"))])]
 
         with self.assertRaises(LeaderUnavailableError):
             client.send_produce_request(requests)

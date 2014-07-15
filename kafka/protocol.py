@@ -2,7 +2,7 @@ import logging
 import struct
 import zlib
 import sys
-from kafka import py3
+from kafka import compat
 
 from kafka.codec import (
     gzip_encode, gzip_decode, snappy_encode, snappy_decode
@@ -55,7 +55,7 @@ class KafkaProtocol(object):
                            0,                    # ApiVersion
                            correlation_id,       # CorrelationId
                            len(client_id),       # ClientId size
-                           py3.b(client_id))            # ClientId
+                           compat.bytes(client_id))            # ClientId
 
     @classmethod
     def _encode_message_set(cls, messages):
@@ -208,7 +208,7 @@ class KafkaProtocol(object):
 
         for topic, topic_payloads in grouped_payloads.items():
             message += struct.pack('>h%dsi' % len(topic),
-                                   len(topic), py3.b(topic), len(topic_payloads))
+                                   len(topic), compat.bytes(topic), len(topic_payloads))
 
             for partition, payload in topic_payloads.items():
                 msg_set = KafkaProtocol._encode_message_set(payload.messages)
@@ -230,7 +230,7 @@ class KafkaProtocol(object):
 
         for i in range(num_topics):
             ((strlen,), cur) = relative_unpack('>h', data, cur)
-            topic = py3.s(data[cur:cur + strlen])
+            topic = compat.str(data[cur:cur + strlen])
             cur += strlen
             ((num_partitions,), cur) = relative_unpack('>i', data, cur)
             for i in range(num_partitions):
@@ -365,7 +365,7 @@ class KafkaProtocol(object):
         message += struct.pack('>i', len(topics))
 
         for topic in topics:
-            message += struct.pack('>h%ds' % len(topic), len(topic), py3.b(topic))
+            message += struct.pack('>h%ds' % len(topic), len(topic), compat.bytes(topic))
 
         return write_int_string(message)
 
@@ -462,11 +462,11 @@ class KafkaProtocol(object):
         ((correlation_id,), cur) = relative_unpack('>i', data, 0)
         ((num_topics,), cur) = relative_unpack('>i', data, cur)
 
-        for i in py3.xrange(num_topics):
+        for i in compat.xrange(num_topics):
             (topic, cur) = read_short_string(data, cur)
             ((num_partitions,), cur) = relative_unpack('>i', data, cur)
 
-            for i in py3.xrange(num_partitions):
+            for i in compat.xrange(num_partitions):
                 ((partition, error), cur) = relative_unpack('>ih', data, cur)
                 yield OffsetCommitResponse(topic, partition, error)
 

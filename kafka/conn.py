@@ -6,7 +6,7 @@ from random import shuffle
 from threading import local
 
 from kafka.common import ConnectionError
-from kafka import py3
+from kafka import compat
 
 log = logging.getLogger("kafka")
 
@@ -20,7 +20,7 @@ def collect_hosts(hosts, randomize=True):
     randomize the returned list.
     """
 
-    if isinstance(hosts, py3.string_types):
+    if isinstance(hosts, compat.basestring):
         hosts = hosts.strip().split(',')
 
     result = []

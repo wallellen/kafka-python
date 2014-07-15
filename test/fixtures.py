@@ -6,10 +6,7 @@ import subprocess
 import tempfile
 import uuid
 
-try:
-    from urlparse import urlparse
-except ImportError:
-    from urllib.parse import urlparse
+from kafka.compat import urlparse
 from test.service import ExternalService, SpawnedService
 from test.testutil import get_open_port
 

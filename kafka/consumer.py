@@ -1,23 +1,11 @@
 from __future__ import absolute_import
 
-try:
-    from itertools import izip_longest, repeat
-except ImportError:
-    from itertools import zip_longest as izip_longest, repeat
+from itertools import repeat
 import logging
 import time
 import numbers
 from threading import Lock
-try:
-    from multiprocessing import Process, Queue as MPQueue, Event, Value
-except ImportError:
-    from multiprocessing import Process, Event, Value
-    from multiprocessing.queues import Queue as MPQueue
-
-try:
-    from Queue import Empty, Queue
-except ImportError:
-    from queue import Empty, Queue
+from multiprocessing import Process, Event, Value, Queue as MPQueue
 
 import kafka
 from kafka.common import (
@@ -28,6 +16,7 @@ from kafka.common import (
 )
 
 from kafka.util import ReentrantTimer
+from kafka.compat import izip_longest, Empty, Queue
 
 log = logging.getLogger("kafka")
 

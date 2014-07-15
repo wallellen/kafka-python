@@ -1,21 +1,19 @@
 import copy
 import logging
 import collections
-
-import kafka.common
-
 from functools import partial
 from itertools import count
+
+import kafka.common
 from kafka.common import (TopicAndPartition,
                           ConnectionError, FailedPayloadsError,
                           PartitionUnavailableError,
                           LeaderUnavailableError, KafkaUnavailableError,
                           UnknownTopicOrPartitionError, NotLeaderForPartitionError)
-
 from kafka.conn import collect_hosts, KafkaConnection, DEFAULT_SOCKET_TIMEOUT_SECONDS
 from kafka.protocol import KafkaProtocol
-from kafka import py3
-from kafka.py3 import iter_next
+from kafka import compat
+
 
 log = logging.getLogger("kafka")
 
@@ -83,7 +81,7 @@ class KafkaClient(object):
         """
         Generate a new correlation id
         """
-        return iter_next(KafkaClient.ID_GEN)
+        return compat.iter_next(KafkaClient.ID_GEN)
 
     def _send_broker_unaware_request(self, requestId, request):
         """
