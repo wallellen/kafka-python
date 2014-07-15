@@ -48,7 +48,7 @@ class TestFailover(KafkaIntegrationTestCase):
             # XXX unfortunately, for warming to work, we need at least as many partitions as brokers
             self._send_random_messages(producer, self.topic, 10)
 
-            # kil leader for partition 0
+            # kill leader for partition 0
             broker = self._kill_leader(topic, partition)
 
             # expect failure, reload meta data

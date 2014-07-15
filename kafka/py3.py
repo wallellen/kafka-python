@@ -27,3 +27,4 @@ else:
         return x
     def s(x):
         return x
+    long = long

@@ -91,14 +91,14 @@ class KafkaClient(object):
         brokers. Keep trying until you succeed.
         """
         for (host, port) in self.hosts:
-            # try:
-            conn = self._get_conn(host, port)
-            conn.send(requestId, request)
-            response = conn.recv(requestId)
-            return response
-            # except Exception as e:
-            #     log.warning("Could not send request [%r] to server %s:%i, "
-            #                 "trying next server: %s" % (request, host, port, e))
+            try:
+                conn = self._get_conn(host, port)
+                conn.send(requestId, request)
+                response = conn.recv(requestId)
+                return response
+            except Exception as e:
+                log.warning("Could not send request [%r] to server %s:%i, "
+                            "trying next server: %s" % (request, host, port, e))
 
         raise KafkaUnavailableError("All servers failed to process request")
 

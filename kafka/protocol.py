@@ -150,7 +150,10 @@ class KafkaProtocol(object):
         The offset is actually read from decode_message_set_iter (it is part
         of the MessageSet payload).
         """
-        ((crc, magic, att), cur) = relative_unpack('>IBB', data, 0)
+        if sys.version > '3':
+            ((crc, magic, att), cur) = relative_unpack('>IBB', data, 0)
+        else:
+            ((crc, magic, att), cur) = relative_unpack('>iBB', data, 0)
         if crc != zlib.crc32(data[4:]):
             raise ChecksumError("Message checksum failed")
 
