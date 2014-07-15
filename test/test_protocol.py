@@ -31,8 +31,8 @@ from kafka import compat
 
 class TestProtocol(unittest2.TestCase):
     def test_create_message(self):
-        payload = compat.bytes("test")
-        key = compat.bytes("key")
+        payload = b"test"
+        key = b"key"
         msg = create_message(payload, key)
         self.assertEqual(msg.magic, 0)
         self.assertEqual(msg.attributes, 0)
@@ -40,21 +40,21 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(msg.value, payload)
 
     def test_create_gzip(self):
-        payloads = [compat.bytes("v1"), compat.bytes("v2")]
+        payloads = [b"v1", b"v2"]
         msg = create_gzip_message(payloads)
         self.assertEqual(msg.magic, 0)
         self.assertEqual(msg.attributes, ATTRIBUTE_CODEC_MASK & CODEC_GZIP)
         self.assertEqual(msg.key, None)
         # Need to decode to check since gzipped payload is non-deterministic
         decoded = gzip_decode(msg.value)
-        expect = compat.bytes('').join([
+        expect = b''.join([
             struct.pack(">q", 0),          # MsgSet offset
             struct.pack(">i", 16),         # MsgSet size
             struct.pack(">i", 1285512130), # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", -1),         # -1 indicates a null key
             struct.pack(">i", 2),          # Msg length (bytes)
-            compat.bytes("v1"),                          # Message contents
+            b"v1",                          # Message contents
 
             struct.pack(">q", 0),          # MsgSet offset
             struct.pack(">i", 16),         # MsgSet size
@@ -62,27 +62,27 @@ class TestProtocol(unittest2.TestCase):
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", -1),         # -1 indicates a null key
             struct.pack(">i", 2),          # Msg length (bytes)
-            compat.bytes("v2"),                          # Message contents
+            b"v2",                          # Message contents
         ])
 
         self.assertEqual(decoded, expect)
 
     @unittest2.skipUnless(has_snappy(), "Snappy not available")
     def test_create_snappy(self):
-        payloads = [compat.bytes("v1"), compat.bytes("v2")]
+        payloads = [b"v1", b"v2"]
         msg = create_snappy_message(payloads)
         self.assertEqual(msg.magic, 0)
         self.assertEqual(msg.attributes, ATTRIBUTE_CODEC_MASK & CODEC_SNAPPY)
         self.assertEqual(msg.key, None)
         decoded = snappy_decode(msg.value)
-        expect = "".join([
+        expect = b"".join([
             struct.pack(">q", 0),          # MsgSet offset
             struct.pack(">i", 16),         # MsgSet size
             struct.pack(">i", 1285512130), # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", -1),         # -1 indicates a null key
             struct.pack(">i", 2),          # Msg length (bytes)
-            "v1",                          # Message contents
+            b"v1",                          # Message contents
 
             struct.pack(">q", 0),          # MsgSet offset
             struct.pack(">i", 16),         # MsgSet size
@@ -90,52 +90,52 @@ class TestProtocol(unittest2.TestCase):
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", -1),         # -1 indicates a null key
             struct.pack(">i", 2),          # Msg length (bytes)
-            "v2",                          # Message contents
+            b"v2",                          # Message contents
         ])
 
         self.assertEqual(decoded, expect)
 
     def test_encode_message_header(self):
-        expect = compat.bytes("").join([
+        expect = b"".join([
             struct.pack(">h", 10),             # API Key
             struct.pack(">h", 0),              # API Version
             struct.pack(">i", 4),              # Correlation Id
             struct.pack(">h", len("client3")), # Length of clientId
-            compat.bytes("client3"),                         # ClientId
+            b"client3",                         # ClientId
         ])
 
         encoded = KafkaProtocol._encode_message_header("client3", 4, 10)
         self.assertEqual(encoded, expect)
 
     def test_encode_message(self):
-        message = create_message(compat.bytes("test"), compat.bytes("key"))
+        message = create_message(b"test", b"key")
         encoded = KafkaProtocol._encode_message(message)
-        expect = compat.bytes("").join([
+        expect = b"".join([
             struct.pack(">i", -1427009701), # CRC
             struct.pack(">bb", 0, 0),       # Magic, flags
             struct.pack(">i", 3),           # Length of key
-            compat.bytes("key"),                          # key
+            b"key",                          # key
             struct.pack(">i", 4),           # Length of value
-            compat.bytes("test"),                         # value
+            b"test",                         # value
         ])
 
         self.assertEqual(encoded, expect)
 
     def test_decode_message(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">i", -1427009701), # CRC
             struct.pack(">bb", 0, 0),       # Magic, flags
             struct.pack(">i", 3),           # Length of key
-            compat.bytes("key"),                          # key
+            b"key",                          # key
             struct.pack(">i", 4),           # Length of value
-            compat.bytes("test"),                         # value
+            b"test",                         # value
         ])
 
         offset = 10
         (returned_offset, decoded_message) = list(KafkaProtocol._decode_message(encoded, offset))[0]
 
         self.assertEqual(returned_offset, offset)
-        self.assertEqual(decoded_message, create_message(compat.bytes("test"), compat.bytes("key")))
+        self.assertEqual(decoded_message, create_message(b"test", b"key"))
 
     def test_encode_message_failure(self):
         with self.assertRaises(ProtocolError):
@@ -143,52 +143,52 @@ class TestProtocol(unittest2.TestCase):
 
     def test_encode_message_set(self):
         message_set = [
-            create_message(compat.bytes("v1"), compat.bytes("k1")),
-            create_message(compat.bytes("v2"), compat.bytes("k2"))
+            create_message(b"v1", b"k1"),
+            create_message(b"v2", b"k2")
         ]
 
         encoded = KafkaProtocol._encode_message_set(message_set)
-        expect = compat.bytes("").join([
+        expect = b"".join([
             struct.pack(">q", 0),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", 1474775406), # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k1"),                          # Key
+            b"k1",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v1"),                          # Value
+            b"v1",                          # Value
 
             struct.pack(">q", 0),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", -16383415),  # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k2"),                          # Key
+            b"k2",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v2"),                          # Value
+            b"v2",                          # Value
         ])
 
         self.assertEqual(encoded, expect)
 
     def test_decode_message_set(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">q", 0),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", 1474775406), # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k1"),                          # Key
+            b"k1",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v1"),                          # Value
+            b"v1",                          # Value
 
             struct.pack(">q", 1),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", -16383415),  # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k2"),                          # Key
+            b"k2",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v2"),                          # Value
+            b"v2",                          # Value
         ])
 
         msgs = list(KafkaProtocol._decode_message_set_iter(encoded))
@@ -199,10 +199,10 @@ class TestProtocol(unittest2.TestCase):
         returned_offset2, decoded_message2 = msg2
 
         self.assertEqual(returned_offset1, 0)
-        self.assertEqual(decoded_message1, create_message(compat.bytes("v1"), compat.bytes("k1")))
+        self.assertEqual(decoded_message1, create_message(b"v1", b"k1"))
 
         self.assertEqual(returned_offset2, 1)
-        self.assertEqual(decoded_message2, create_message(compat.bytes("v2"), compat.bytes("k2")))
+        self.assertEqual(decoded_message2, create_message(b"v2", b"k2"))
 
     def test_decode_message_gzip(self):
         gzip_encoded = compat.bytes('\xc0\x11\xb2\xf0\x00\x01\xff\xff\xff\xff\x00\x00\x000'
@@ -218,11 +218,11 @@ class TestProtocol(unittest2.TestCase):
 
         returned_offset1, decoded_message1 = msg1
         self.assertEqual(returned_offset1, 0)
-        self.assertEqual(decoded_message1, create_message(compat.bytes("v1")))
+        self.assertEqual(decoded_message1, create_message(b"v1"))
 
         returned_offset2, decoded_message2 = msg2
         self.assertEqual(returned_offset2, 0)
-        self.assertEqual(decoded_message2, create_message(compat.bytes("v2")))
+        self.assertEqual(decoded_message2, create_message(b"v2"))
 
     @unittest2.skipUnless(has_snappy(), "Snappy not available")
     def test_decode_message_snappy(self):
@@ -238,14 +238,14 @@ class TestProtocol(unittest2.TestCase):
 
         returned_offset1, decoded_message1 = msg1
         self.assertEqual(returned_offset1, 0)
-        self.assertEqual(decoded_message1, create_message(compat.bytes("v1")))
+        self.assertEqual(decoded_message1, create_message(b"v1"))
 
         returned_offset2, decoded_message2 = msg2
         self.assertEqual(returned_offset2, 0)
-        self.assertEqual(decoded_message2, create_message(compat.bytes("v2")))
+        self.assertEqual(decoded_message2, create_message(b"v2"))
 
     def test_decode_message_checksum_error(self):
-        invalid_encoded_message = compat.bytes("This is not a valid encoded message")
+        invalid_encoded_message = b"This is not a valid encoded message"
         iter = KafkaProtocol._decode_message(invalid_encoded_message, 0)
         self.assertRaises(ChecksumError, list, iter)
 
@@ -256,24 +256,24 @@ class TestProtocol(unittest2.TestCase):
             list(KafkaProtocol._decode_message_set_iter('a'))
 
     def test_decode_message_set_stop_iteration(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">q", 0),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", 1474775406), # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k1"),                          # Key
+            b"k1",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v1"),                          # Value
+            b"v1",                          # Value
 
             struct.pack(">q", 1),          # MsgSet Offset
             struct.pack(">i", 18),         # Msg Size
             struct.pack(">i", -16383415),  # CRC
             struct.pack(">bb", 0, 0),      # Magic, flags
             struct.pack(">i", 2),          # Length of key
-            compat.bytes("k2"),                          # Key
+            b"k2",                          # Key
             struct.pack(">i", 2),          # Length of value
-            compat.bytes("v2"),                          # Value
+            b"v2",                          # Value
             compat.bytes("@1$%(Y!"),                     # Random padding
         ])
 
@@ -285,40 +285,40 @@ class TestProtocol(unittest2.TestCase):
         returned_offset2, decoded_message2 = msg2
 
         self.assertEqual(returned_offset1, 0)
-        self.assertEqual(decoded_message1, create_message(compat.bytes("v1"), compat.bytes("k1")))
+        self.assertEqual(decoded_message1, create_message(b"v1", b"k1"))
 
         self.assertEqual(returned_offset2, 1)
-        self.assertEqual(decoded_message2, create_message(compat.bytes("v2"), compat.bytes("k2")))
+        self.assertEqual(decoded_message2, create_message(b"v2", b"k2"))
 
     def test_encode_produce_request(self):
         requests = [
             ProduceRequest("topic1", 0, [
-                create_message(compat.bytes("a")),
-                create_message(compat.bytes("b"))
+                create_message(b"a"),
+                create_message(b"b")
             ]),
             ProduceRequest("topic2", 1, [
-                create_message(compat.bytes("c"))
+                create_message(b"c")
             ])
         ]
 
-        msg_a_binary = KafkaProtocol._encode_message(create_message(compat.bytes("a")))
-        msg_b_binary = KafkaProtocol._encode_message(create_message(compat.bytes("b")))
-        msg_c_binary = KafkaProtocol._encode_message(create_message(compat.bytes("c")))
+        msg_a_binary = KafkaProtocol._encode_message(create_message(b"a"))
+        msg_b_binary = KafkaProtocol._encode_message(create_message(b"b"))
+        msg_c_binary = KafkaProtocol._encode_message(create_message(b"c"))
 
-        header = compat.bytes("").join([
+        header = b"".join([
             struct.pack('>i', 0x94),                   # The length of the message overall
             struct.pack('>h', 0),                      # Msg Header, Message type = Produce
             struct.pack('>h', 0),                      # Msg Header, API version
             struct.pack('>i', 2),                      # Msg Header, Correlation ID
-            struct.pack('>h7s', 7, compat.bytes("client1")),         # Msg Header, The client ID
+            struct.pack('>h7s', 7, b"client1"),         # Msg Header, The client ID
             struct.pack('>h', 2),                      # Num acks required
             struct.pack('>i', 100),                    # Request Timeout
             struct.pack('>i', 2),                      # The number of requests
         ])
 
         total_len = len(msg_a_binary) + len(msg_b_binary)
-        topic1 = compat.bytes("").join([
-            struct.pack('>h6s', 6, compat.bytes('topic1')),          # The topic1
+        topic1 = b"".join([
+            struct.pack('>h6s', 6, b'topic1'),          # The topic1
             struct.pack('>i', 1),                      # One message set
             struct.pack('>i', 0),                      # Partition 0
             struct.pack('>i', total_len + 24),         # Size of the incoming message set
@@ -330,8 +330,8 @@ class TestProtocol(unittest2.TestCase):
             msg_b_binary,                              # Actual message
         ])
 
-        topic2 = compat.bytes("").join([
-            struct.pack('>h6s', 6, compat.bytes('topic2')),          # The topic1
+        topic2 = b"".join([
+            struct.pack('>h6s', 6, b'topic2'),          # The topic1
             struct.pack('>i', 1),                      # One message set
             struct.pack('>i', 1),                      # Partition 1
             struct.pack('>i', len(msg_c_binary) + 12), # Size of the incoming message set
@@ -340,8 +340,8 @@ class TestProtocol(unittest2.TestCase):
             msg_c_binary,                              # Actual message
         ])
 
-        expected1 = compat.bytes("").join([ header, topic1, topic2 ])
-        expected2 = compat.bytes("").join([ header, topic2, topic1 ])
+        expected1 = b"".join([ header, topic1, topic2 ])
+        expected2 = b"".join([ header, topic2, topic1 ])
 
         encoded = KafkaProtocol.encode_produce_request("client1", 2, requests, 2, 100)
         self.assertIn(encoded, [ expected1, expected2 ])
@@ -364,36 +364,36 @@ class TestProtocol(unittest2.TestCase):
             FetchRequest("topic2", 1, 20, 100),
         ]
 
-        header = compat.bytes("").join([
+        header = b"".join([
             struct.pack('>i', 89),             # The length of the message overall
             struct.pack('>h', 1),              # Msg Header, Message type = Fetch
             struct.pack('>h', 0),              # Msg Header, API version
             struct.pack('>i', 3),              # Msg Header, Correlation ID
-            struct.pack('>h7s', 7, compat.bytes("client1")), # Msg Header, The client ID
+            struct.pack('>h7s', 7, b"client1"), # Msg Header, The client ID
             struct.pack('>i', -1),             # Replica Id
             struct.pack('>i', 2),              # Max wait time
             struct.pack('>i', 100),            # Min bytes
             struct.pack('>i', 2),              # Num requests
         ])
 
-        topic1 = compat.bytes("").join([
-            struct.pack('>h6s', 6, compat.bytes('topic1')), # Topic
+        topic1 = b"".join([
+            struct.pack('>h6s', 6, b'topic1'), # Topic
             struct.pack('>i', 1),             # Num Payloads
             struct.pack('>i', 0),             # Partition 0
             struct.pack('>q', 10),            # Offset
             struct.pack('>i', 1024),          # Max Bytes
         ])
 
-        topic2 = compat.bytes("").join([
-            struct.pack('>h6s', 6, compat.bytes('topic2')), # Topic
+        topic2 = b"".join([
+            struct.pack('>h6s', 6, b'topic2'), # Topic
             struct.pack('>i', 1),             # Num Payloads
             struct.pack('>i', 1),             # Partition 0
             struct.pack('>q', 20),            # Offset
             struct.pack('>i', 100),           # Max Bytes
         ])
 
-        expected1 = compat.bytes("").join([ header, topic1, topic2 ])
-        expected2 = compat.bytes("").join([ header, topic2, topic1 ])
+        expected1 = b"".join([ header, topic1, topic2 ])
+        expected2 = b"".join([ header, topic2, topic1 ])
 
         encoded = KafkaProtocol.encode_fetch_request("client1", 3, requests, 2, 100)
         self.assertIn(encoded, [ expected1, expected2 ])
@@ -401,7 +401,7 @@ class TestProtocol(unittest2.TestCase):
     def test_decode_fetch_response(self):
         t1 = "topic1"
         t2 = "topic2"
-        msgs = list(map(create_message, [compat.bytes("message1"), compat.bytes("hi"), compat.bytes("boo"), compat.bytes("foo"), compat.bytes("so fun!")]))
+        msgs = list(map(create_message, [b"message1", b"hi", b"boo", b"foo", b"so fun!"]))
         ms1 = KafkaProtocol._encode_message_set([msgs[0], msgs[1]])
         ms2 = KafkaProtocol._encode_message_set([msgs[2]])
         ms3 = KafkaProtocol._encode_message_set([msgs[3], msgs[4]])
@@ -427,12 +427,12 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(expanded_responses, expect)
 
     def test_encode_metadata_request_no_topics(self):
-        expected = compat.bytes("").join([
+        expected = b"".join([
             struct.pack(">i", 17),         # Total length of the request
             struct.pack('>h', 3),          # API key metadata fetch
             struct.pack('>h', 0),          # API version
             struct.pack('>i', 4),          # Correlation ID
-            struct.pack('>h3s', 3, compat.bytes("cid")), # The client ID
+            struct.pack('>h3s', 3, b"cid"), # The client ID
             struct.pack('>i', 0),          # No topics, give all the data!
         ])
 
@@ -441,15 +441,15 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(encoded, expected)
 
     def test_encode_metadata_request_with_topics(self):
-        expected = compat.bytes("").join([
+        expected = b"".join([
             struct.pack(">i", 25),         # Total length of the request
             struct.pack('>h', 3),          # API key metadata fetch
             struct.pack('>h', 0),          # API version
             struct.pack('>i', 4),          # Correlation ID
-            struct.pack('>h3s', 3, compat.bytes("cid")), # The client ID
+            struct.pack('>h3s', 3, b"cid"), # The client ID
             struct.pack('>i', 2),          # Number of topics in the request
-            struct.pack('>h2s', 2, compat.bytes("t1")),  # Topic "t1"
-            struct.pack('>h2s', 2, compat.bytes("t2")),  # Topic "t2"
+            struct.pack('>h2s', 2, b"t1"),  # Topic "t1"
+            struct.pack('>h2s', 2, b"t2"),  # Topic "t2"
         ])
 
         encoded = KafkaProtocol.encode_metadata_request("cid", 4, ["t1", "t2"])
@@ -513,12 +513,12 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(decoded, (node_brokers, topic_partitions))
 
     def test_encode_offset_request(self):
-        expected = compat.bytes("").join([
+        expected = b"".join([
             struct.pack(">i", 21),         # Total length of the request
             struct.pack('>h', 2),          # Message type = offset fetch
             struct.pack('>h', 0),          # API version
             struct.pack('>i', 4),          # Correlation ID
-            struct.pack('>h3s', 3, compat.bytes("cid")), # The client ID
+            struct.pack('>h3s', 3, b"cid"), # The client ID
             struct.pack('>i', -1),         # Replica Id
             struct.pack('>i', 0),          # No topic/partitions
         ])
@@ -528,16 +528,16 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(encoded, expected)
 
     def test_encode_offset_request__no_payload(self):
-        expected = compat.bytes("").join([
+        expected = b"".join([
             struct.pack(">i", 65),            # Total length of the request
 
             struct.pack('>h', 2),             # Message type = offset fetch
             struct.pack('>h', 0),             # API version
             struct.pack('>i', 4),             # Correlation ID
-            struct.pack('>h3s', 3, compat.bytes("cid")),    # The client ID
+            struct.pack('>h3s', 3, b"cid"),    # The client ID
             struct.pack('>i', -1),            # Replica Id
             struct.pack('>i', 1),             # Num topics
-            struct.pack(">h6s", 6, compat.bytes("topic1")), # Topic for the request
+            struct.pack(">h6s", 6, b"topic1"), # Topic for the request
             struct.pack(">i", 2),             # Two partitions
 
             struct.pack(">i", 3),             # Partition 3
@@ -557,10 +557,10 @@ class TestProtocol(unittest2.TestCase):
         self.assertEqual(encoded, expected)
 
     def test_decode_offset_response(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">i", 42),            # Correlation ID
             struct.pack(">i", 1),             # One topics
-            struct.pack(">h6s", 6, compat.bytes("topic1")), # First topic
+            struct.pack(">h6s", 6, b"topic1"), # First topic
             struct.pack(">i", 2),             # Two partitions
 
             struct.pack(">i", 2),             # Partition 2
@@ -581,19 +581,19 @@ class TestProtocol(unittest2.TestCase):
         ]))
 
     def test_encode_offset_commit_request(self):
-        header = compat.bytes("").join([
+        header = b"".join([
             struct.pack('>i', 99),               # Total message length
 
             struct.pack('>h', 8),                # Message type = offset commit
             struct.pack('>h', 0),                # API version
             struct.pack('>i', 42),               # Correlation ID
-            struct.pack('>h9s', 9, compat.bytes("client_id")), # The client ID
-            struct.pack('>h8s', 8, compat.bytes("group_id")),  # The group to commit for
+            struct.pack('>h9s', 9, b"client_id"), # The client ID
+            struct.pack('>h8s', 8, b"group_id"),  # The group to commit for
             struct.pack('>i', 2),                # Num topics
         ])
 
-        topic1 = compat.bytes("").join([
-            struct.pack(">h6s", 6, compat.bytes("topic1")),    # Topic for the request
+        topic1 = b"".join([
+            struct.pack(">h6s", 6, b"topic1"),    # Topic for the request
             struct.pack(">i", 2),                # Two partitions
             struct.pack(">i", 0),                # Partition 0
             struct.pack(">q", 123),              # Offset 123
@@ -603,16 +603,16 @@ class TestProtocol(unittest2.TestCase):
             struct.pack(">h", -1),               # Null metadata
         ])
 
-        topic2 = compat.bytes("").join([
-            struct.pack(">h6s", 6, compat.bytes("topic2")),    # Topic for the request
+        topic2 = b"".join([
+            struct.pack(">h6s", 6, b"topic2"),    # Topic for the request
             struct.pack(">i", 1),                # One partition
             struct.pack(">i", 2),                # Partition 2
             struct.pack(">q", 345),              # Offset 345
             struct.pack(">h", -1),               # Null metadata
         ])
 
-        expected1 = compat.bytes("").join([ header, topic1, topic2 ])
-        expected2 = compat.bytes("").join([ header, topic2, topic1 ])
+        expected1 = b"".join([ header, topic1, topic2 ])
+        expected2 = b"".join([ header, topic2, topic1 ])
 
         encoded = KafkaProtocol.encode_offset_commit_request("client_id", 42, "group_id", [
             OffsetCommitRequest("topic1", 0, 123, None),
@@ -623,10 +623,10 @@ class TestProtocol(unittest2.TestCase):
         self.assertIn(encoded, [ expected1, expected2 ])
 
     def test_decode_offset_commit_response(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">i", 42),            # Correlation ID
             struct.pack(">i", 1),             # One topic
-            struct.pack(">h6s", 6, compat.bytes("topic1")), # First topic
+            struct.pack(">h6s", 6, b"topic1"), # First topic
             struct.pack(">i", 2),             # Two partitions
 
             struct.pack(">i", 2),             # Partition 2
@@ -643,31 +643,31 @@ class TestProtocol(unittest2.TestCase):
         ]))
 
     def test_encode_offset_fetch_request(self):
-        header = compat.bytes("").join([
+        header = b"".join([
             struct.pack('>i', 69),               # Total message length
             struct.pack('>h', 9),                # Message type = offset fetch
             struct.pack('>h', 0),                # API version
             struct.pack('>i', 42),               # Correlation ID
-            struct.pack('>h9s', 9, compat.bytes("client_id")), # The client ID
-            struct.pack('>h8s', 8, compat.bytes("group_id")),  # The group to commit for
+            struct.pack('>h9s', 9, b"client_id"), # The client ID
+            struct.pack('>h8s', 8, b"group_id"),  # The group to commit for
             struct.pack('>i', 2),                # Num topics
         ])
 
-        topic1 = compat.bytes("").join([
-            struct.pack(">h6s", 6, compat.bytes("topic1")),    # Topic for the request
+        topic1 = b"".join([
+            struct.pack(">h6s", 6, b"topic1"),    # Topic for the request
             struct.pack(">i", 2),                # Two partitions
             struct.pack(">i", 0),                # Partition 0
             struct.pack(">i", 1),                # Partition 1
         ])
 
-        topic2 = compat.bytes("").join([
-            struct.pack(">h6s", 6, compat.bytes("topic2")),    # Topic for the request
+        topic2 = b"".join([
+            struct.pack(">h6s", 6, b"topic2"),    # Topic for the request
             struct.pack(">i", 1),                # One partitions
             struct.pack(">i", 2),                # Partition 2
         ])
 
-        expected1 = compat.bytes("").join([ header, topic1, topic2 ])
-        expected2 = compat.bytes("").join([ header, topic2, topic1 ])
+        expected1 = b"".join([ header, topic1, topic2 ])
+        expected2 = b"".join([ header, topic2, topic1 ])
 
         encoded = KafkaProtocol.encode_offset_fetch_request("client_id", 42, "group_id", [
             OffsetFetchRequest("topic1", 0),
@@ -678,20 +678,20 @@ class TestProtocol(unittest2.TestCase):
         self.assertIn(encoded, [ expected1, expected2 ])
 
     def test_decode_offset_fetch_response(self):
-        encoded = compat.bytes("").join([
+        encoded = b"".join([
             struct.pack(">i", 42),            # Correlation ID
             struct.pack(">i", 1),             # One topics
-            struct.pack(">h6s", 6, compat.bytes("topic1")), # First topic
+            struct.pack(">h6s", 6, b"topic1"), # First topic
             struct.pack(">i", 2),             # Two partitions
 
             struct.pack(">i", 2),             # Partition 2
             struct.pack(">q", 4),             # Offset 4
-            struct.pack(">h4s", 4, compat.bytes("meta")),   # Metadata
+            struct.pack(">h4s", 4, b"meta"),   # Metadata
             struct.pack(">h", 0),             # No error
 
             struct.pack(">i", 4),             # Partition 4
             struct.pack(">q", 8),             # Offset 8
-            struct.pack(">h4s", 4, compat.bytes("meta")),   # Metadata
+            struct.pack(">h4s", 4, b"meta"),   # Metadata
             struct.pack(">h", 0),             # No error
         ])
 

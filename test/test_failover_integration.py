@@ -53,8 +53,8 @@ class TestFailover(KafkaIntegrationTestCase):
 
             # expect failure, reload meta data
             with self.assertRaises(FailedPayloadsError):
-                producer.send_messages(self.topic, compat.bytes('part 1'))
-                producer.send_messages(self.topic, compat.bytes('part 2'))
+                producer.send_messages(self.topic, b'part 1')
+                producer.send_messages(self.topic, b'part 2')
             time.sleep(1)
 
             # send to new leader

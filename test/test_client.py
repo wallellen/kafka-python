@@ -243,7 +243,7 @@ class TestKafkaClient(unittest2.TestCase):
 
         requests = [ProduceRequest(
             "topic_noleader", 0,
-            [create_message(compat.bytes("a")), create_message(compat.bytes("b"))])]
+            [create_message(b"a"), create_message(b"b")])]
 
         with self.assertRaises(LeaderUnavailableError):
             client.send_produce_request(requests)

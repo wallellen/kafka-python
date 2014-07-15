@@ -13,26 +13,26 @@ class UtilTest(unittest2.TestCase):
 
     def test_write_int_string(self):
         self.assertEqual(
-            kafka.util.write_int_string(compat.bytes('some string')),
-            compat.bytes('\x00\x00\x00\x0bsome string')
+            kafka.util.write_int_string(b'some string'),
+            b'\x00\x00\x00\x0bsome string'
         )
 
     def test_write_int_string__empty(self):
         self.assertEqual(
-            kafka.util.write_int_string(compat.bytes('')),
-            compat.bytes('\x00\x00\x00\x00')
+            kafka.util.write_int_string(b''),
+            b'\x00\x00\x00\x00'
         )
 
     def test_write_int_string__null(self):
         self.assertEqual(
             kafka.util.write_int_string(None),
-            compat.bytes('\xff\xff\xff\xff')
+            b'\xff\xff\xff\xff'
         )
 
     def test_read_int_string(self):
-        self.assertEqual(kafka.util.read_int_string(compat.bytes('\xff\xff\xff\xff'), 0), (None, 4))
-        self.assertEqual(kafka.util.read_int_string(compat.bytes('\x00\x00\x00\x00'), 0), (compat.bytes(''), 4))
-        self.assertEqual(kafka.util.read_int_string(compat.bytes('\x00\x00\x00\x0bsome string'), 0), (compat.bytes('some string'), 15))
+        self.assertEqual(kafka.util.read_int_string(b'\xff\xff\xff\xff', 0), (None, 4))
+        self.assertEqual(kafka.util.read_int_string(b'\x00\x00\x00\x00', 0), (b'', 4))
+        self.assertEqual(kafka.util.read_int_string(b'\x00\x00\x00\x0bsome string', 0), (b'some string', 15))
 
     def test_read_int_string__insufficient_data(self):
         with self.assertRaises(kafka.common.BufferUnderflowError):
@@ -41,19 +41,19 @@ class UtilTest(unittest2.TestCase):
     def test_write_short_string(self):
         self.assertEqual(
             kafka.util.write_short_string('some string'),
-            compat.bytes('\x00\x0bsome string')
+            b'\x00\x0bsome string'
         )
 
     def test_write_short_string__empty(self):
         self.assertEqual(
             kafka.util.write_short_string(''),
-            compat.bytes('\x00\x00')
+            b'\x00\x00'
         )
 
     def test_write_short_string__null(self):
         self.assertEqual(
             kafka.util.write_short_string(None),
-            compat.bytes('\xff\xff')
+            b'\xff\xff'
         )
 
     def test_write_short_string__too_long(self):
@@ -61,9 +61,9 @@ class UtilTest(unittest2.TestCase):
             kafka.util.write_short_string(' ' * 33000)
 
     def test_read_short_string(self):
-        self.assertEqual(kafka.util.read_short_string(compat.bytes('\xff\xff'), 0), (None, 2))
-        self.assertEqual(kafka.util.read_short_string(compat.bytes('\x00\x00'), 0), ('', 2))
-        self.assertEqual(kafka.util.read_short_string(compat.bytes('\x00\x0bsome string'), 0), ('some string', 13))
+        self.assertEqual(kafka.util.read_short_string(b'\xff\xff', 0), (None, 2))
+        self.assertEqual(kafka.util.read_short_string(b'\x00\x00', 0), ('', 2))
+        self.assertEqual(kafka.util.read_short_string(b'\x00\x0bsome string', 0), ('some string', 13))
 
     def test_read_int_string__insufficient_data(self):
         with self.assertRaises(kafka.common.BufferUnderflowError):
